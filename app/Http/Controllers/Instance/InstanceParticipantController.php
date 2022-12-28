@@ -7,10 +7,12 @@ use App\Http\Requests\ParticipantRequest;
 use App\Models\Package;
 use App\Models\PackageParticipant;
 use App\Models\Participant;
+use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
 use Nette\Utils\DateTime;
 
@@ -60,14 +62,16 @@ class InstanceParticipantController extends Controller
             $params['photo'] = $this->simpanImage('participant', $request->file('photo'), $params['no_reg']);
         }
         $saved = false;
-        $saved = DB::transaction(function () use ($params) {
+        $saved = DB::transaction(function () use ($params, $request) {
             $package_id = Session::get('package_id');
             $participant = Participant::create($params);
             $participant->package()->sync($package_id);
             return true;
         });
 
-        if ($saved) {
+        $upload = $this->sendData($request->file('photo'), $params['no_identity']);
+
+        if ($saved && $upload) {
             alert()->success('Success', 'Data Berhasil Disimpan');
         } else {
             Session::flash('errors', 'Data Gagal Disimpan');
@@ -143,18 +147,23 @@ class InstanceParticipantController extends Controller
      */
     public function destroy($id)
     {
-        $participant = Participant::findOrFail(Crypt::decrypt($id));
-        $url = $participant->photo;
-        $dir = public_path('storage/' . substr($url, 0, strrpos($url, '/')));
-        $path = public_path('storage/' . $url);
+        try {
+            $participant = Participant::findOrFail(Crypt::decrypt($id));
+            $url = $participant->photo;
+            $dir = public_path('storage/' . substr($url, 0, strrpos($url, '/')));
+            $path = public_path('storage/' . $url);
 
-        File::delete($path);
+            File::delete($path);
 
-        rmdir($dir);
-        if ($participant->delete()) {
-            alert()->success('Success', 'Data Berhasil Dihapus');
+            rmdir($dir);
+            if ($participant->delete()) {
+                alert()->success('Success', 'Data Berhasil Dihapus');
+            }
+            return redirect('instance/participant');
+        } catch (\Throwable $th) {
+            Session::flash('errors', $th->getMessage());
+            return redirect('instance/participant');
         }
-        return redirect('instance/participant');
     }
 
     private function simpanImage($type, $foto, $nama)
@@ -180,12 +189,36 @@ class InstanceParticipantController extends Controller
         return $filePath;
     }
 
-    private function generateKode(){
+    private function generateKode()
+    {
         $jumlahRow = Participant::all()->count();
         $number = $jumlahRow + 1;
         $date = new DateTime();
         $timeNow = $date->format('dmy');
         $noreg = "REG-" . $timeNow . "-" . $number;
         return $noreg;
+    }
+
+    public static function sendData($image, $nim)
+    {
+        try {
+            $client = new Client();
+            $url = "http://apiproctor.polindra.ac.id/upload-face";
+            $response = $client->request('POST', $url, [
+                'multipart' => [
+                    [
+                        'name'     => 'face_image',
+                        'contents' => fopen($image, 'r')
+                    ],
+                    [
+                        'name'     => 'nim',
+                        'contents' => $nim
+                    ]
+                ]
+            ]);
+            return true;
+        } catch (\Throwable $th) {
+            return false;
+        }
     }
 }

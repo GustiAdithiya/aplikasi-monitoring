@@ -37,6 +37,7 @@
                     <div class="card-body">
                         <h5 class="card-title">Edit Data</h5>
                         @include('layouts.components.flash')
+                        <input name="id" type="hidden" class="form-control" id="id" value="{{$data->id}}">
                         <div class="row mb-3">
                             <div class="col-lg-12">
                                 <label for="no_identity" class="form-label">NIM / NIK</label>

@@ -43,7 +43,7 @@
                 <td scope="row">{{ $loop->iteration }}</td>
                 <td>{{ $package->instance->instance_name }}</td>
                 <td>{{ $package->name }}</td>
-                <td>{{ $package->code }}</td>
+                <td>{{ $package->desc }}</td>
                 <td>Start : {{$package->start_at}}</br>Finish : {{$package->finish_at}}</td>
                 <td>
                   @php

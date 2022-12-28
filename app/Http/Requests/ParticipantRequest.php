@@ -26,12 +26,14 @@ class ParticipantRequest extends FormRequest
         $id = $this->get('id');
         if ($this->method() == 'PUT') {
             $photo = 'image|mimes:jpeg,png,jpg,gif|max:4096';
+            $no_identity = 'required|numeric|unique:participants,no_identity,' . $id;
         } else {
             $photo = 'required|image|mimes:jpeg,png,jpg,gif|max:4096';
+            $no_identity = 'required|numeric|unique:participants,no_identity,NULL';
         }
         return [
             'name' => 'required|string|max:255',
-            'no_identity' => 'required|numeric',
+            'no_identity' => $no_identity,
             'photo' => $photo
         ];
     }

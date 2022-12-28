@@ -17,34 +17,6 @@ use Nette\Utils\DateTime;
 
 class InstanceMonitoringController extends Controller
 {
-    // public function index(Request $request)
-    // {
-    //     if ($request->query('id') != "") {
-    //         $id = Crypt::decrypt($request->query('id'));
-    //         Session::put('id', $id);
-    //     }
-    //     if ($request->query('logID') != "") {
-    //         $logID = Crypt::decrypt($request->query('logID'));
-    //         Session::put('logID', $logID);
-    //     }
-    //     $id = Session::get('id');
-    //     $logID = Session::get('logID');
-
-    //     // $data = Participant::findOrFail($id);
-    //     // $logs = Participant::select('logs.*')->join('logs', 'logs.no_peserta', '=', 'participants.no_identity')->where('participants.id', $id)->get();
-    //     // if ($logID != "") {
-    //     //     $logData = Log::findOrFail($logID);
-    //     //     $this->data['image1'] = $this->simpanImage($logData->base64_head_gest, $data->name);
-    //     //     $this->data['image2'] = $this->simpanImage($logData->base64_obj_det, $data->name);
-    //     // } else {
-    //     //     $this->data['image1'] = '';
-    //     //     $this->data['image2'] = '';
-    //     // }
-    //     // $this->data['data'] = $data;
-    //     // $this->data['logs'] = $logs;
-    //     return view('instance.monitoring.image', $this->data);
-    // }
-
     public function index(Request $request)
     {
 
@@ -88,41 +60,5 @@ class InstanceMonitoringController extends Controller
         $this->data['name'] = $code->name;
         $this->data['participants'] = $participants;
         return view('instance.monitoring.participant', $this->data);
-    }
-
-    private function simpanImage($foto, $nama)
-    {
-        $image = str_replace('data:image/png;base64,', '', $foto);
-        $image = str_replace(' ', '+', $image);
-        $dt = new DateTime();
-
-        $path = public_path('storage/uploads/monitoring/base64/' . $dt->format('Y-m-d') . '/' . $nama);
-        if (!File::isDirectory($path)) {
-            File::makeDirectory($path, 0755, true, true);
-        }
-        $file = base64_decode($image);
-        $name =  'base64_' . $nama . '_' . $dt->format('Y-m-d');
-        $fileName = $name . '.png';
-        $folder = 'uploads/monitoring/base64/' . $dt->format('Y-m-d') . '/' . $nama;
-
-        $check = public_path($folder) . $fileName;
-
-        if (File::exists($check)) {
-            File::delete($check);
-        }
-        File::put(public_path('storage/uploads/monitoring/base64/' . $dt->format('Y-m-d') . '/' . $nama) . '/' . $fileName, $file);
-        // $filePath = $file->storeAs($folder, $fileName, 'public');
-        return $folder . '/' . $fileName;
-    }
-
-    public function getDataParticipant($idparticipant, $idpackage)
-    {
-        $client = new Client();
-        $url = "http://expro.polindra.ac.id/api/trust-score/" . $idpackage . "/" . $idparticipant;
-        $response = $client->request('GET', $url, [
-            'verify'  => false,
-        ]);
-        $responseBody = json_decode($response->getBody());
-        return $responseBody;
     }
 }

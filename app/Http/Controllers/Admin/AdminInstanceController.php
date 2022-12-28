@@ -48,27 +48,31 @@ class AdminInstanceController extends Controller
      */
     public function store(InstanceRequest $request)
     {
-        $params = $request->all();
-        $params['password'] =  Hash::make($request->password);
-        $params['role'] = 'instance';
+        try {
+            $params = $request->all();
+            $params['password'] =  Hash::make($request->password);
+            $params['role'] = 'instance';
 
-        if ($request->has('photo')) {
-            $params['photo'] = $this->simpanImage('instance', $request->file('photo'), $params['username']);
-        }
-
-        $user = User::create($params);
-        if ($user) {
-            $params['user_id'] = $user->id;
-            if (Instance::create($params)) {
-                alert()->success('Success', 'Data Berhasil Disimpan');
-            } else {
-                $user = User::findOrFail($user->id);
-                $user->delete();
-                Session::flash('errors', 'Data Gagal Disimpan');
-                // alert()->error('Error', 'Data Gagal Disimpan');
+            if ($request->has('photo')) {
+                $params['photo'] = $this->simpanImage('instance', $request->file('photo'), $params['username']);
             }
+
+            $user = User::create($params);
+            if ($user) {
+                $params['user_id'] = $user->id;
+                if (Instance::create($params)) {
+                    alert()->success('Success', 'Data Berhasil Disimpan');
+                } else {
+                    $user = User::findOrFail($user->id);
+                    $user->delete();
+                    Session::flash('errors', 'Data Gagal Disimpan');
+                    // alert()->error('Error', 'Data Gagal Disimpan');
+                }
+            }
+            return redirect('admin/instance');
+        } catch (\Throwable $th) {
+            Session::flash('errors', 'Data Gagal Disimpan');
         }
-        return redirect('admin/instance');
     }
 
     /**
@@ -104,30 +108,34 @@ class AdminInstanceController extends Controller
      */
     public function update(InstanceRequest $request, $id)
     {
-        $params = $request->all();
-        $params['username'] = $request->username;
+        try {
+            $params = $request->all();
+            $params['username'] = $request->username;
 
-        if ($request->filled('password')) {
-            $params['password'] = Hash::make($request->password);
-        } else {
-            $params = $request->except('password');
-        }
+            if ($request->filled('password')) {
+                $params['password'] = Hash::make($request->password);
+            } else {
+                $params = $request->except('password');
+            }
 
-        if ($request->has('photo')) {
-            $params['photo'] = $this->simpanImage('instance', $request->file('photo'), $params['username']);
-        } else {
-            $params = $request->except('photo');
-        }
+            if ($request->has('photo')) {
+                $params['photo'] = $this->simpanImage('instance', $request->file('photo'), $params['username']);
+            } else {
+                $params = $request->except('photo');
+            }
 
-        $instance = Instance::findOrFail(Crypt::decrypt($id));
-        $user = User::findOrFail($instance->user_id);
-        if ($instance->update($params) && $user->update($params)) {
-            alert()->success('Success', 'Data Berhasil Disimpan');
-        } else {
+            $instance = Instance::findOrFail(Crypt::decrypt($id));
+            $user = User::findOrFail($instance->user_id);
+            if ($instance->update($params) && $user->update($params)) {
+                alert()->success('Success', 'Data Berhasil Disimpan');
+            } else {
+                Session::flash('errors', 'Data Gagal Disimpan');
+                // alert()->error('Error','Data Berhasil Disimpan');
+            }
+            return redirect('admin/instance');
+        } catch (\Throwable $th) {
             Session::flash('errors', 'Data Gagal Disimpan');
-            // alert()->error('Error','Data Berhasil Disimpan');
         }
-        return redirect('admin/instance');
     }
 
     /**
@@ -138,20 +146,24 @@ class AdminInstanceController extends Controller
      */
     public function destroy($id)
     {
-        $instance = Instance::findOrFail(Crypt::decrypt($id));
-        $url = $instance->photo;
-        $dir = public_path('storage/' . substr($url, 0, strrpos($url, '/')));
-        $path = public_path('storage/' . $url);
+        try {
+            $instance = Instance::findOrFail(Crypt::decrypt($id));
+            $url = $instance->photo;
+            $dir = public_path('storage/' . substr($url, 0, strrpos($url, '/')));
+            $path = public_path('storage/' . $url);
 
-        File::delete($path);
+            File::delete($path);
 
-        rmdir($dir);
-        if ($instance->delete()) {
-            $user = User::findOrFail($instance->user_id);
-            $user->delete();
-            alert()->success('Success', 'Data Berhasil Dihapus');
+            rmdir($dir);
+            if ($instance->delete()) {
+                $user = User::findOrFail($instance->user_id);
+                $user->delete();
+                alert()->success('Success', 'Data Berhasil Dihapus');
+            }
+            return redirect('admin/instance');
+        } catch (\Throwable $th) {
+            Session::flash('errors', 'Data Gagal Dihapus');
         }
-        return redirect('admin/instance');
     }
 
     private function simpanImage($type, $foto, $nama)

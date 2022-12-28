@@ -64,11 +64,13 @@
                         <div class="carousel-inner">
                             @forelse($log as $key => $value)
                             <div id="list-item{{$key}}" class="carousel-item {{$log[$key] == reset($log) ? 'active' : ''}}">
+                                <!-- <label>{{$log[$key]['timestamp']}} {{$log[$key]['label']}}</label> -->
                                 <img src="{{$log[$key]['image']}}" style="object-fit:contain; width:auto; height:500px;" class="d-block w-100" alt="...">
                             </div>
                             @empty
-                        Data Tidak Ditemukan
-                        @endforelse
+                            <img src="{{ asset('images/preview.png') }}" style="object-fit:contain; width:auto; height:500px;" class="d-block w-100" alt="...">
+                            @endforelse
+
                         </div>
                         <!-- <button class="carousel-control-prev" type="button" data-bs-target="#carousel" data-bs-slide="prev">
                             <span class="carousel-control-prev-icon" aria-hidden="true"></span>
@@ -89,10 +91,10 @@
                     <div id="list" class="list-group scroll">
                         <?php $i = 0; ?>
                         @forelse($log as $key => $value)
-                        <a id="btnList" data-bs-target="#carousel" data-bs-slide-to="{{$i}}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-start" href="#list-item-{{$key}}"><span class="badge border-danger border-1 text-danger">{{$log[$key]['timestamp']}} :</span> {{$log[$key]['label']}}</a>
+                        <button id="btnList{{$i}}" onclick="active('btnList{{$i}}')" data-bs-target="#carousel" data-bs-slide-to="{{$i}}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-start {{$i == 0 ? 'active' : ''}}" href="#list-item-{{$key}}"><span class="badge border-danger border-1 text-danger">{{$log[$key]['timestamp']}} :</span> {{$log[$key]['label']}}</button>
                         <?php $i++ ?>
                         @empty
-                        Data Tidak Ditemukan
+                        <button class="list-group-item list-group-item-action d-flex justify-content-between align-items-start {{$i == 0 ? 'active' : ''}}">Data Tidak Ditemukan</button>
                         @endforelse
                     </div>
                 </div>
@@ -101,7 +103,17 @@
     </div>
 </div>
 @push('scripts')
-
+<script>
+    var data = "btnList0"
+    var active = function(key) {
+        var element1 = document.getElementById(key)
+        var element2 = document.getElementById(data)
+        if (data !== key) {
+            element1.classList.add('active')
+            element2.classList.remove('active')
+            data = key
+        }
+    }
+</script>
 @endpush
-
 @endsection

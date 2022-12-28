@@ -14,7 +14,7 @@ class General
             $response = $client->request('GET', $url, [
                 'verify'  => false,
             ]);
-            $responseBody = json_decode($response->getBody(), true);
+            $responseBody = json_decode($response->getBody (), true);
             // dd($responseBody['data']['trust_score']);
             return $responseBody['data']['trust_score'];
         } catch (\Throwable $th) {
@@ -33,7 +33,7 @@ class General
             $responseBody = json_decode($response->getBody(), true);
             return $responseBody['data'];
         } catch (\Throwable $th) {
-            return $th->getMessage();
+            return null;
         }
     }
 
@@ -48,7 +48,7 @@ class General
             $responseBody = json_decode($response->getBody(), true);
             return $responseBody['data'];
         } catch (\Throwable $th) {
-            return $th->getMessage();
+            return null;
         }
     }
 
@@ -56,15 +56,14 @@ class General
     {
         try {
             $datas = json_encode(array_merge(General::getObjDet($idpackage, $idparticipant), General::getHeadGest($idpackage, $idparticipant)));
-        $datas = json_decode($datas, true);
-        $datas = collect($datas)->sortBy('timestamp');
-        $array = json_encode($datas);
-        $array = json_decode($array, true);
-        // dd($array);
-        return $array;
+            $datas = json_decode($datas, true);
+            $datas = collect($datas)->sortBy('timestamp');
+            $array = json_encode($datas);
+            $array = json_decode($array, true);
+            // dd($array);
+            return $array;
         } catch (\Throwable $th) {
-            return [];
+            return null;
         }
-        
     }
 }
